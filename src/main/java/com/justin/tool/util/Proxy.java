@@ -95,13 +95,16 @@ public class Proxy {
 
             long _s = System.currentTimeMillis();
 
+            BufferedInputStream bis = null;
+            BufferedOutputStream bos = null;
+
             try {
 
                 Map<String, String> header = new HashMap<String, String>();
                 byte[] data = new byte[0];
 
-                BufferedInputStream bis = new BufferedInputStream(socket.getInputStream());
-                BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
+                bis = new BufferedInputStream(socket.getInputStream());
+                bos = new BufferedOutputStream(socket.getOutputStream());
 
                 // read & parse head
                 do {
@@ -157,14 +160,44 @@ public class Proxy {
                     bos.write(r.data);
                 }
                 bos.flush();
-                bos.close();
-                bis.close();
+
                 Logger.info(Proxy.class, threadName + " >> " + r.statusCode + " " + r.statusMsg);
                 Logger.info(Proxy.class, threadName + " >> " + r.header);
                 Logger.info(Proxy.class, threadName + " >> " + new String(r.data));
             } catch (IOException e) {
-                e.printStackTrace();
+                Logger.info(Proxy.class, threadName + " >> " + e);
+                if (bos != null) {
+                    try {
+                        String errMsg = String.valueOf(e);
+                        bos.write(("HTTP/1.1 " + 500 + " " + "Proxy Server ERROR" + "\r\n").getBytes("UTF-8"));
+                        bos.write(("Date: " + DateUitl.formatGMT(new Date()) + "\r\n").getBytes("UTF-8"));
+                        bos.write(("Connection: close" + "\r\n").getBytes("UTF-8"));
+                        bos.write(("Content-Type: text/html; charset=utf-8" + "\r\n").getBytes("UTF-8"));
+                        bos.write(("Server: Justin Proxy Server" + "\r\n").getBytes("UTF-8"));
+                        bos.write(("Content-Length: " + errMsg.getBytes("UTF-8").length + "\r\n").getBytes("UTF-8"));
+                        bos.write(("\r\n").getBytes("UTF-8"));
+                        bos.write((errMsg.getBytes("UTF-8")));
+                        bos.flush();
+                    } catch (IOException e1) {
+                        Logger.info(Proxy.class, threadName + " >> " + e1);
+                    }
+
+                }
             } finally {
+                if (bis != null) {
+                    try {
+                        bis.close();
+                    } catch (IOException e) {
+                        Logger.info(Proxy.class, threadName + " >> " + e);
+                    }
+                }
+                if (bos != null) {
+                    try {
+                        bos.close();
+                    } catch (IOException e) {
+                        Logger.info(Proxy.class, threadName + " >> " + e);
+                    }
+                }
                 Logger.info(Proxy.class, threadName + "--------------time:" + (System.currentTimeMillis() - _s) + "ms----------------");
             }
         }
