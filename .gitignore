@@ -13,3 +13,7 @@ hs_err_pid*
 ＃ idea tool
 .idea/
 build/
+.gradle/
+util-tool.iml
+util-tool.ipr
+util-tool.iws
