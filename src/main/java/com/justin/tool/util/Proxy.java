@@ -19,7 +19,7 @@ public class Proxy {
 
         if (args.length < 1) {
             System.out.println("Usage:");
-            System.out.println("      $JAVA com.justin.tool.util.Proxy $host [server port]");
+            System.out.println("      $JAVA com.justin.tool.util.Proxy $host(http://host:port) [server port]");
             System.exit(1);
         }
 
